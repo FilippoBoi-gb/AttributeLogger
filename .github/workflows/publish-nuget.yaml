@@ -44,13 +44,15 @@ jobs:
             --no-build
 
       - name: Publish to NuGet.org (nupkg)
-        run: dotnet nuget push "./artifacts/*.nupkg" \
+        run: |
+              dotnet nuget push "./artifacts/*.nupkg" \
               --api-key ${{ secrets.NUGETSECRET }} \
               --source https://api.nuget.org/v3/index.json \
               --skip-duplicate
 
       - name: Publish symbols (snupkg)
-        run: dotnet nuget push "./artifacts/*.snupkg" \
+        run: |
+              dotnet nuget push "./artifacts/*.snupkg" \
               --api-key ${{ secrets.NUGETSECRET }} \
               --source https://api.nuget.org/v3/index.json \
               --skip-duplicate
