@@ -20,11 +20,12 @@ jobs:
         with:
           dotnet-version: '6.0.x'
           cache: true       
-
+          cache-dependency-path: '**/*.csproj' #avoids error on package lock
+          
       - name: Extract version from tag
         shell: bash
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"   # rimuove la 'v' (es. v1.2.3 -> 1.2.3)
+          VERSION="${GITHUB_REF_NAME#v}"  
           echo "VERSION=$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
