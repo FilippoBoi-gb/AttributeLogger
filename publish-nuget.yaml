@@ -1,0 +1,55 @@
+name: Publish NuGet
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  pack-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+          cache: true       
+
+      - name: Extract version from tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"   # rimuove la 'v' (es. v1.2.3 -> 1.2.3)
+          echo "VERSION=$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build -c Release -p:ContinuousIntegrationBuild=true --no-restore
+
+      - name: Pack
+        run: |
+          dotnet pack -c Release \
+            -p:PackageVersion=${{ env.VERSION }} \
+            -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg \
+            -o ./artifacts \
+            --no-build
+
+      - name: Publish to NuGet.org (nupkg)
+        run: dotnet nuget push "./artifacts/*.nupkg" \
+              --api-key ${{ secrets.NUGETSECRET }} \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+
+      - name: Publish symbols (snupkg)
+        run: dotnet nuget push "./artifacts/*.snupkg" \
+              --api-key ${{ secrets.NUGETSECRET }} \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate
